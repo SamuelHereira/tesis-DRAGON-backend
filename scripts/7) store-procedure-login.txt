@@ -1,0 +1,45 @@
+USE `2025_C1_Grupo3_2025`;
+DROP procedure IF EXISTS `LOGIN`;
+
+USE `2025_C1_Grupo3_2025`;
+DROP procedure IF EXISTS `2025_C1_Grupo3_2025`.`LOGIN`;
+;
+
+DELIMITER $$
+USE `2025_C1_Grupo3_2025`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `LOGIN`( IN p_usuario VARCHAR(50),
+    IN p_password VARCHAR(50),
+    OUT p_idUsuario INT,
+    OUT p_mensaje VARCHAR(100))
+BEGIN
+ DECLARE v_idUsuario INT;
+    -- Variable para almacenar el estado del usuario
+DECLARE v_estadoUsuario CHAR(1);
+    DECLARE v_alias VARCHAR(50);
+    -- Verificar si el usuario y la contraseña coinciden
+    SELECT idUsuario, estado, alias INTO v_idUsuario, v_estadoUsuario, v_alias FROM usuarios WHERE usuario = p_usuario AND password = p_password LIMIT 1;
+    
+    -- Verificar si se encontró un usuario con las credenciales proporcionadas y con estado 'A' (activo)
+    IF v_idUsuario IS NOT NULL AND v_estadoUsuario = 1 THEN
+        -- Usuario y contraseña válidos y usuario activo, proceder
+       UPDATE usuarios SET registroLogin = NOW() WHERE idUsuario = v_idUsuario;
+       SET p_idUsuario = v_idUsuario;
+       IF v_alias IS NULL OR v_alias = '' THEN
+            SET p_mensaje = 'NOT';
+        ELSE
+            SET p_mensaje = 'OK';
+        END IF;
+    ELSE
+        SET p_idUsuario = 0;
+        IF v_idUsuario IS NULL THEN
+            SET p_mensaje = 'usuario_incorrecto';
+        ELSE
+            SET p_mensaje = 'Usuario-inactivo';
+        END IF;
+    END IF;
+    SELECT p_idUsuario, p_mensaje;
+END$$
+
+DELIMITER ;
+;
+

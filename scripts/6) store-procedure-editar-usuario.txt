@@ -1,0 +1,39 @@
+USE `2025_C1_Grupo3_2025`;
+DROP procedure IF EXISTS `EDITAR_USUARIO`;
+
+USE `2025_C1_Grupo3_2025`;
+DROP procedure IF EXISTS `2025_C1_Grupo3_2025`.`EDITAR_USUARIO`;
+;
+
+DELIMITER $$
+USE `2025_C1_Grupo3_2025`$$
+CREATE DEFINER=`dbuser`@`localhost` PROCEDURE `EDITAR_USUARIO`(IN p_nombres VARCHAR(60),
+	IN p_id_usuario int, 
+    IN p_fechaN VARCHAR(45),
+    IN p_apellidos VARCHAR(60),
+    IN p_password VARCHAR(50),
+    IN p_new_password VARCHAR(50),
+    OUT p_mensaje VARCHAR(100))
+BEGIN
+	DECLARE v_id_usuario INT;
+    select idUsuario into v_id_usuario from usuarios u where u.idUsuario = p_id_usuario and u.password = p_password;
+    IF v_id_usuario IS NULL THEN
+		SET p_mensaje = 'PASSWORD_FAILD';
+	ELSE
+    IF LENGTH(p_new_password) = 0 OR p_new_password IS NULL THEN
+		UPDATE usuarios set nombres = p_nombres, apellidos = p_apellidos, fechaNacimiento = p_fechaN where idUsuario = p_id_usuario;
+    ELSE
+		UPDATE usuarios set nombres = p_nombres, apellidos = p_apellidos, fechaNacimiento = p_fechaN, password = p_new_password where idUsuario = p_id_usuario;
+    END IF;
+		IF ROW_COUNT() = 0 THEN
+			SET p_mensaje = 'error_insert';
+		ELSE
+			SET p_mensaje = 'exito_insert';
+		END IF;
+	END IF;
+    SELECT p_mensaje;
+END$$
+
+DELIMITER ;
+;
+

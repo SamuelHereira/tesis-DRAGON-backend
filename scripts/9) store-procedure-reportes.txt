@@ -1,0 +1,62 @@
+USE `2025_C1_Grupo3_2025`;
+DROP procedure IF EXISTS `OBTENER_REPORTE_JUEGO`;
+
+USE `2025_C1_Grupo3_2025`;
+DROP procedure IF EXISTS `2025_C1_Grupo3_2025`.`OBTENER_REPORTE_JUEGO`;
+;
+
+DELIMITER $$
+USE `2025_C1_Grupo3_2025`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `OBTENER_REPORTE_JUEGO`(
+				IN p_id_usuario int,
+				IN p_id_juego int,
+                OUT p_mensaje VARCHAR(20),
+				OUT p_data TEXT
+)
+BEGIN
+	DECLARE total_records INT DEFAULT 0;
+    DECLARE temp_data TEXT DEFAULT '';
+    
+    -- Contar el número de registros
+    SELECT COUNT(*) INTO total_records
+    FROM puntaje_juego p
+    INNER JOIN juegos j ON p.id_juego = j.id_juego
+    INNER JOIN usuarios u ON p.id_persona = u.idUsuario
+    WHERE p.id_juego = p_id_juego AND j.id_profesor = p_id_usuario;
+    
+    IF total_records > 0 THEN
+        SET p_mensaje = 'OK';
+        
+        -- Construir el JSON manualmente
+        SELECT CONCAT(
+            '[',
+            GROUP_CONCAT(
+                CONCAT(
+                    '{"nombres":"', u.nombres, '",',
+                    '"apellidos":"', u.apellidos, '",',
+                    '"puntaje":', p.puntaje, ',',
+                    '"aciertos":', p.aciertos, ',',
+                    '"errores":', p.errores, ',',
+                    '"id_juego":', p_id_juego, ',',
+                    '"hora_inicio":"', p.hora_inicio, '",',
+                    '"hora_fin":"', p.hora_fin, '"}'
+                )
+            ),
+            ']'
+        ) INTO temp_data
+        FROM puntaje_juego p
+        INNER JOIN juegos j ON p.id_juego = j.id_juego
+        INNER JOIN usuarios u ON p.id_persona = u.idUsuario
+        WHERE p.id_juego = p_id_juego AND j.id_profesor = p_id_usuario;
+        
+        SET p_data = temp_data;
+    ELSE
+        SET p_mensaje = 'NO_DATA';
+        SET p_data = NULL;
+    END IF;
+	SELECT p_data, p_mensaje;    
+END$$
+
+DELIMITER ;
+;
+

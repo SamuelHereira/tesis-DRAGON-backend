@@ -6,6 +6,10 @@ require_once 'conexion/respuestaGenerica.php';
 class home extends Conexion
 {
 
+    public function convertirFechaISOaMySQL($fechaISO) {
+        return date('Y-m-d H:i:s', strtotime($fechaISO));
+    }
+
     public function getUsuario($json)
     {
 
@@ -184,7 +188,11 @@ class home extends Conexion
             $json_data = $datos['json'];
             $id_tipo_juego = $datos['id_tipo_juego'];
 
-            $datos = $this->crearJuego($usuario, $fecha_creacion, $fecha_finalizacion, $json_data, $id_tipo_juego);
+
+            $fechaCreacion = $this->convertirFechaISOaMySQL($fecha_creacion);
+            $fechaFinalizacion = $this->convertirFechaISOaMySQL($fecha_finalizacion);
+
+            $datos = $this->crearJuego($usuario, $fechaCreacion, $fechaFinalizacion, $json_data, $id_tipo_juego);
             if ($datos) {
                 $result = $_respustas->response;
                 $result["result"] = array(

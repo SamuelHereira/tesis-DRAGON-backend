@@ -1,4 +1,6 @@
 <?php
+require_once 'conexion/conexion.php';
+require_once 'conexion/respuestaGenerica.php';
 
 class Gemini {
     private $apiKey;
@@ -11,9 +13,9 @@ class Gemini {
 
     public function generatePrompt(string $topic, int $gameMode): string {
         $promptTypes = [
-            1 => "10 functional requirements (code: RF) and 10 non-functional requirements (code: RNF)",
-            2 => "10 ambiguous functional requirements (code: FA) and 10 non-ambiguous functional requirements (code: FN)",
-            3 => "10 ambiguous non-functional requirements (code: NFA) and 10 non-ambiguous non-functional requirements (code: NFN)"
+            1 => "10 ambiguous non-functional requirements (code: NFA) and 10 non-ambiguous non-functional requirements (code: NFN)",
+            2 => "10 functional requirements (code: RF) and 10 non-functional requirements (code: RNF)",
+            3 => "10 ambiguous functional requirements (code: FA) and 10 non-ambiguous functional requirements (code: FN)"
         ];
 
         if (!isset($promptTypes[$gameMode])) {

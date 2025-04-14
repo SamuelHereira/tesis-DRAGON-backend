@@ -449,6 +449,7 @@ class home extends Conexion
         } else {
             return 0;
         }
+        
     }
 
 }

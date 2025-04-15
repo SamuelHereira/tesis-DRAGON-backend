@@ -89,4 +89,42 @@ class Gemini {
         $res = json_decode($response, true);
         return $res['candidates'][0]['content']['parts'][0]['text'] ?? null;
     }
+
+    public function generarRequisitos(string $topic, int $gameMode) {
+        $_respuestas = new RespuestaGenerica;
+
+        if (empty($topic)) {
+            return $_respuestas->error_400("El campo 'topic' es requerido.");
+        }
+
+        if (empty($gameMode) || !in_array($gameMode, [1, 2, 3])) {
+            return $_respuestas->error_400("El campo 'gameMode' es requerido y debe ser 1, 2 o 3.");
+        }
+        
+
+
+        $prompt = $this->generatePrompt($topic, $gameMode);
+        $responseText = $this->callGemini($prompt);
+
+        if (!$responseText) {
+            return $_respuestas->error_500("No se obtuvo respuesta de Gemini");
+        }
+
+        // Limpiar ```json si existe
+        $cleaned = trim($responseText);
+        $cleaned = preg_replace('/^```json|```$/i', '', $cleaned);
+        $cleaned = trim($cleaned);
+
+        // Convertir a JSON válido
+        $decoded = json_decode($cleaned, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            return $_respuestas->error_500("La respuesta de Gemini no se pudo convertir en JSON válido.");
+        }
+
+        $result = $_respuestas->response;
+        $result["result"] = $decoded;
+        return $result;
+    }
+
 }

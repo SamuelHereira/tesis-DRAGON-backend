@@ -26,7 +26,8 @@ class home extends Conexion
                 $result = $_respustas->response;
                 $result["result"] = array(
                     "registro" => $datos["registroLogin"],
-                    "rol" => $datos["rol"]
+                    "rol" => $datos["rol"],
+                    "isRevisor" => $datos["isRevisor"]
                 );
                 return $result;
             } else {
@@ -83,6 +84,7 @@ class home extends Conexion
                         "fecha_finalizacion" => $datos["fecha_finalizacion"],
                         "estado" => $datos["estado"],
                         "id_tipo_juego" => $datos["id_tipo_juego"],
+                        "num_requerimientos_aleatorios" => $datos["num_requerimientos_aleatorios"],
                         "json" => $datos["json"],
                     );
                     return $result;
@@ -320,7 +322,13 @@ class home extends Conexion
 
     private function obtenerUsuarioRegistro($id_usuario, $usuario)
     {
-        $query = "SELECT registroLogin, rol FROM usuarios WHERE idUsuario = '$id_usuario' AND usuario = '$usuario'";
+        $query = "SELECT registroLogin, rol, 
+            EXISTS (
+                SELECT 1 
+                FROM revisor_juego r 
+                WHERE r.id_usuario = u.idUsuario
+            ) AS isRevisor 
+        FROM usuarios u WHERE idUsuario = '$id_usuario' AND usuario = '$usuario'";
         $datos = parent::obtenerDatos($query);
         if (isset($datos[0]["registroLogin"])) {
             return $datos[0];

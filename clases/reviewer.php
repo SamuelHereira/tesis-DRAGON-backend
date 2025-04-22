@@ -7,13 +7,13 @@ class Reviewer  extends Conexion
 
     public function obtainValidReviewers($gameId)
     {
-        // $query = obtiene un listado de usuarios de rol "p" que no esten como revisores para ese juego
+     
         $query = "SELECT idUsuario, nombres, apellidos, usuario, correo
         FROM usuarios
-        WHERE rol = 'p'
+        WHERE rol = 'e'
         AND idUsuario NOT IN (
             SELECT id_usuario
-            FROM revisores_juego
+            FROM revisor_juego
             WHERE id_juego = $gameId
         )";
         $datos = parent::obtenerDatos($query);
@@ -27,9 +27,8 @@ class Reviewer  extends Conexion
 
     public function obtainReviewers($gameId)
     {
-        // $query = obtiene un listado de usuarios de rol "p" que no esten como revisores para ese juego
         $query = "SELECT u.idUsuario, u.nombres, u.apellidos, u.usuario, u.correo
-              FROM revisores_juego r
+              FROM revisor_juego r
               INNER JOIN usuarios u ON r.id_usuario = u.idUsuario
               WHERE r.id_juego = $gameId";
 
@@ -38,7 +37,7 @@ class Reviewer  extends Conexion
         if (isset($datos[0])) {
             return $datos;
         } else {
-            return 0;
+            return [];
         }
     }
 
@@ -46,7 +45,7 @@ class Reviewer  extends Conexion
     {
         // $query = verifica si el revisor ya existe para ese juego
         $query = "SELECT COUNT(*) as total
-              FROM revisores_juego
+              FROM revisor_juego
               WHERE id_juego = $gameId AND id_usuario = $userId";
 
         $datos = parent::obtenerDatos($query);
@@ -60,8 +59,8 @@ class Reviewer  extends Conexion
             return -1; 
         }
 
-        $query = "INSERT INTO revisores_juego (id_juego, id_usuario, fecha_asignacion) VALUES (?, ?, ?)";
-        $types = "ii";
+        $query = "INSERT INTO revisor_juego (id_juego, id_usuario, fecha_asignacion) VALUES (?, ?, ?)";
+        $types = "iis";
         $params = [$gameId, $reviewerId, $date];
 
         return $this->nonQueryIdParams($query, $types, $params);
@@ -69,11 +68,22 @@ class Reviewer  extends Conexion
 
     public function removeReviewer($gameId, $reviewerId)
     {
-        $query = "DELETE FROM revisores_juego WHERE id_juego = ? AND id_usuario = ?";
+        $query = "DELETE FROM revisor_juego WHERE id_juego = ? AND id_usuario = ?";
         $types = "ii";
         $params = [$gameId, $reviewerId];
 
         return $this->nonQueryIdParams($query, $types, $params);
+    }
+
+    public function obtenerJuegosRevisor($reviewerId) {
+        $query = "SELECT * FROM juegos WHERE id_juego in (SELECT id_juego from revisor_juego where usuario_id = $reviewerId";
+        $datos = parent::obtenerDatos($query);
+
+        if(isset($datos[0])) {
+            return $datos;
+        } else {
+            return [];
+        }
     }
 
     public function getValidReviewers($json)
@@ -85,7 +95,7 @@ class Reviewer  extends Conexion
         } else {
             $gameId = $datos['id_juego'];
             $reviewers = $this->obtainValidReviewers($gameId);
-            if ($reviewers) {
+            if (is_array($reviewers)) {
                 $result = $_respustas->response;
                 $result["result"] = $reviewers;
                 return $result;
@@ -105,7 +115,7 @@ class Reviewer  extends Conexion
         } else {
             $gameId = $datos['id_juego'];
             $reviewers = $this->obtainReviewers($gameId);
-            if ($reviewers) {
+            if (is_array($reviewers)) {
                 $result = $_respustas->response;
                 $result["result"] = $reviewers;
                 return $result;
@@ -129,11 +139,9 @@ class Reviewer  extends Conexion
             $result = $this->addReviewer($gameId, $reviewerId, $date);
             if ($result == -1) {
                 return $_respustas->error_200("already_assigned");
-            } elseif ($result > 0) {
-                return $_respustas->response;
             } else {
-                return $_respustas->error_500("Error al asignar el revisor.");
-            }
+                return $_respustas->response;
+            } 
         }
     }
 
@@ -147,12 +155,28 @@ class Reviewer  extends Conexion
             $gameId = $datos['id_juego'];
             $reviewerId = $datos['id_usuario'];
             $result = $this->removeReviewer($gameId, $reviewerId);
-            if ($result > 0) {
-                return $_respustas->response;
+
+            return $_respustas->response;
+        }
+    }
+
+    public function getJuegosRevisor($json)
+    {
+        $_respustas = new RespuestaGenerica;
+        $datos = json_decode($json, true);
+        if (!isset($datos['id_usuario'])) {
+        } else {
+            $reviewerId = $datos['id_usuario'];
+            $juegos = $this->obtenerJuegosRevisor($reviewerId);
+            if (is_array($juegos)) {
+                $result = $_respustas->response;
+                $result["result"] = $juegos;
+                return $result;
             } else {
-                return $_respustas->error_500("Error al eliminar el revisor.");
+                return $_respustas->error_200("not_user");
             }
         }
     }
+
 
 }

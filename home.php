@@ -1,8 +1,10 @@
 <?php
 require_once 'clases/home.class.php';
+require_once 'clases/reviewer.php';
 require_once 'clases/conexion/respuestaGenerica.php';
 
 $_auth = new home;
+$_reviewer = new Reviewer;
 $_respuestas = new RespuestaGenerica;
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -65,6 +67,23 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             case 'getJuegosJugados':
                 $datosArray = $_auth->getJugadosJugados($postBody);
                 break;
+            
+            // Revisores
+            case 'obtenerRevisoresValidos':
+                $datosArray = $_reviewer->getValidReviewers($postBody);
+                break;
+
+            case 'obtenerRevisores':
+                $datosArray = $_reviewer->getReviewers($postBody);
+                break;
+            
+            case 'asignarRevisor':
+                $datosArray = $_reviewer->postAddReviewer($postBody);
+                break;
+            case 'eliminarRevisor':
+                $datosArray = $_reviewer->postRemoveReviewer($postBody);
+                break;
+            
             default:
                 $datosArray = $_respuestas->error_405();
                 break;

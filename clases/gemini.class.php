@@ -11,11 +11,17 @@ class Gemini {
         $this->apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$this->apiKey}";
     }
 
-    public function generatePrompt(string $topic, int $gameMode): string {
+    public function generatePrompt(string $topic, int $gameMode, int $numRequirements): string {
+        $num = $numRequirements;
+            if ($num % 2 !== 0) {
+                $num++; // Si es impar, lo ajustamos
+            }
+            $half = $num / 2;
+        
         $promptTypes = [
-            1 => "10 ambiguous non-functional requirements (code: NFA) and 10 non-ambiguous non-functional requirements (code: NFN)",
-            2 => "10 functional requirements (code: RF) and 10 non-functional requirements (code: RNF)",
-            3 => "10 ambiguous functional requirements (code: FA) and 10 non-ambiguous functional requirements (code: FN)"
+            1 => "$half ambiguous non-functional requirements (code: NFA) and $half non-ambiguous non-functional requirements (code: NFN)",
+            2 => "$half functional requirements (code: RF) and $half non-functional requirements (code: RNF)",
+            3 => "$half ambiguous functional requirements (code: FA) and $half non-ambiguous functional requirements (code: FN)"
         ];
 
         if (!isset($promptTypes[$gameMode])) {
@@ -27,14 +33,10 @@ class Gemini {
         return <<<PROMPT
             You are an expert in requirements engineering and serious game design.
 
-            Given the topic: "$topic", generate 20 requirements for a serious game based on this topic.
+            Given the topic: "$topic", generate requirements for a serious game based on this topic.
 
             Use the selected mode to generate requirements:
             $modeDescription
-
-            1. Mode 1 → 10 functional requirements (`RF`) and 10 non-functional requirements (`RNF`)
-            2. Mode 2 → 10 ambiguous functional requirements (`FA`) and 10 non-ambiguous functional requirements (`FN`)
-            3. Mode 3 → 10 ambiguous non-functional requirements (`NFA`) and 10 non-ambiguous non-functional requirements (`NFN`)
 
             Each requirement must:
             - Be written in **Spanish**
@@ -90,7 +92,7 @@ class Gemini {
         return $res['candidates'][0]['content']['parts'][0]['text'] ?? null;
     }
 
-    public function generarRequisitos(string $topic, int $gameMode) {
+    public function generarRequisitos(string $topic, int $gameMode, int $numRequirements) {
         $_respuestas = new RespuestaGenerica;
 
         if (empty($topic)) {
@@ -100,10 +102,13 @@ class Gemini {
         if (empty($gameMode) || !in_array($gameMode, [1, 2, 3])) {
             return $_respuestas->error_400("El campo 'gameMode' es requerido y debe ser 1, 2 o 3.");
         }
-        
 
+        if (empty($numRequirements) || !is_numeric($numRequirements) || $numRequirements < 1) {
+            return $_respuestas->error_400("El campo 'numRequirements' es requerido y debe ser un número mayor que 0.");
+        }
+    
 
-        $prompt = $this->generatePrompt($topic, $gameMode);
+        $prompt = $this->generatePrompt($topic, $gameMode, $numRequirements);
         $responseText = $this->callGemini($prompt);
 
         if (!$responseText) {

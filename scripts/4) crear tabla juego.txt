@@ -24,3 +24,6 @@ alter table 2025_C1_Grupo3_2025.juegos
 
   alter table 2025_C1_Grupo3_2025.juegos
   add errores int;
+
+  ALTER TABLE 2025_C1_Grupo3_2025.juegos
+	ADD COLUMN `num_requerimientos_aleatorios` INT NULL AFTER `id_tipo_juego`;

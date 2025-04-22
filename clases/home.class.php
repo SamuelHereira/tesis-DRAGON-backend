@@ -187,12 +187,13 @@ class home extends Conexion
             $fecha_finalizacion = $datos['fechaFinilizacion'];
             $json_data = $datos['json'];
             $id_tipo_juego = $datos['id_tipo_juego'];
+            $num_requerimientos_aleatorios = $datos['num_requerimientos_aleatorios'];
 
 
             $fechaCreacion = $this->convertirFechaISOaMySQL($fecha_creacion);
             $fechaFinalizacion = $this->convertirFechaISOaMySQL($fecha_finalizacion);
 
-            $datos = $this->crearJuego($usuario, $fechaCreacion, $fechaFinalizacion, $json_data, $id_tipo_juego);
+            $datos = $this->crearJuego($usuario, $fechaCreacion, $fechaFinalizacion, $json_data, $id_tipo_juego, $num_requerimientos_aleatorios);
             if ($datos) {
                 $result = $_respustas->response;
                 $result["result"] = array(
@@ -339,11 +340,11 @@ class home extends Conexion
         }
     }
 
-    private function crearJuego($id_usuario, $fecha_creacion, $fecha_finalizacion, $json, $id_tipo_juego)
+    private function crearJuego($id_usuario, $fecha_creacion, $fecha_finalizacion, $json, $id_tipo_juego, $num_requerimientos_aleatorios)
     {
-        $query = "INSERT INTO juegos (id_profesor, fecha_creacion, fecha_finalizacion, json, id_tipo_juego) VALUES (?, ?, ?, ?, ?)";
-        $params = [$id_usuario, $fecha_creacion, $fecha_finalizacion, $json, $id_tipo_juego];
-        $types = "isssi"; // tipos de los parámetros: i = integer, s = string        
+        $query = "INSERT INTO juegos (id_profesor, fecha_creacion, fecha_finalizacion, json, id_tipo_juego, num_requerimientos_aleatorios) VALUES (?, ?, ?, ?, ?, ?)";
+        $params = [$id_usuario, $fecha_creacion, $fecha_finalizacion, $json, $id_tipo_juego, $num_requerimientos_aleatorios];
+        $types = "isssii"; // tipos de los parámetros: i = integer, s = string        
         return $this->nonQueryIdParams($query, $types, $params);
     }
     private function cerrarJuego($id_juego, $id_profesor)

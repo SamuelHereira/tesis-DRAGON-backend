@@ -1,0 +1,10 @@
+CREATE TABLE `2025_C1_Grupo3_2025`.`revisor_juego` (
+  id_juego INT NOT NULL,
+  id_usuario INT NOT NULL,
+  fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_juego, id_usuario),
+  FOREIGN KEY (id_juego) REFERENCES juegos(id_juego)
+    ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(idUsuario)
+    ON DELETE CASCADE
+);

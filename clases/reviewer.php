@@ -76,7 +76,20 @@ class Reviewer  extends Conexion
     }
 
     public function obtenerJuegosRevisor($reviewerId) {
-        $query = "SELECT * FROM juegos WHERE id_juego in (SELECT id_juego from revisor_juego where usuario_id = $reviewerId";
+        $query = "SELECT 
+                    rj.id_revisor_juego,
+                    j.id_juego,
+                    j.fecha_creacion,
+                    j.fecha_finalizacion,
+                    j.id_profesor,
+                    concat(u.nombres, ' ', u.apellidos) as profesor,
+                    (SELECT COUNT(*) from revision_revisor_juego WHERE id_revisor_juego = rj.id_revisor_juego) as total_revision,
+                    j.json
+                    FROM revisor_juego rj
+                    JOIN juegos j ON rj.id_juego = j.id_juego
+                    JOIN usuarios u ON j.id_profesor = u.idUsuario
+                    WHERE id_usuario = $reviewerId
+                    ";
         $datos = parent::obtenerDatos($query);
 
         if(isset($datos[0])) {
@@ -171,6 +184,51 @@ class Reviewer  extends Conexion
             if (is_array($juegos)) {
                 $result = $_respustas->response;
                 $result["result"] = $juegos;
+                return $result;
+            } else {
+                return $_respustas->error_200("not_user");
+            }
+        }
+    }
+
+    public function obtenerJuegoRevisor($reviewerId)
+    {
+        $query = "SELECT 
+                    rj.id_revisor_juego,
+                    j.id_juego,
+                    j.fecha_creacion,
+                    j.fecha_finalizacion,
+                    j.id_profesor,
+                    concat(u.nombres, ' ', u.apellidos) as profesor,
+                    (SELECT COUNT(*) from revision_revisor_juego WHERE id_revisor_juego = rj.id_revisor_juego) as total_revision,
+                    j.json
+                    FROM revisor_juego rj
+                    JOIN juegos j ON rj.id_juego = j.id_juego
+                    JOIN usuarios u ON j.id_profesor = u.idUsuario
+                    WHERE id_revisor_juego = $reviewerId
+                    ";
+        $datos = parent::obtenerDatos($query);
+
+        if(isset($datos[0])) {
+            return $datos;
+        } else {
+            return [];
+        }
+
+    }
+
+    public function getJuegoRevisor($json)
+    {
+        $_respustas = new RespuestaGenerica;
+        $datos = json_decode($json, true);
+        if (!isset($datos['id_revisor_juego'])) {
+            return $_respustas->error_400("El campo 'id_revisor_juego' es requerido.");
+        } else {
+            $revisorJuegoId = $datos['id_revisor_juego'];
+            $juego = $this->obtenerJuegoRevisor($revisorJuegoId);
+            if (is_array($juego)) {
+                $result = $_respustas->response;
+                $result["result"] = $juego;
                 return $result;
             } else {
                 return $_respustas->error_200("not_user");

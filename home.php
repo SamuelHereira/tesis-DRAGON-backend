@@ -86,6 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             case 'getJuegosRevisor': 
                 $datosArray = $_reviewer->getJuegosRevisor($postBody);
                 break;
+
+            case 'obtenerJuegoRevisor':
+                $datosArray = $_reviewer->getJuegoRevisor($postBody);
+                break;
             
             default:
                 $datosArray = $_respuestas->error_405();

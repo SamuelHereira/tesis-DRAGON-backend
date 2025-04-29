@@ -1,0 +1,18 @@
+CREATE TABLE revision_revisor_juego (
+    id_revision_revisor_juego INT NOT NULL AUTO_INCREMENT,
+    id_revisor_juego INT NOT NULL,
+    id_requerimiento INT NOT NULL,
+    feedback VARCHAR(500) NOT NULL,
+    fecha_revision DATETIME NOT NULL,
+    no_feedback INT NOT NULL,
+
+    PRIMARY KEY (id_revision_revisor_juego),
+
+    CONSTRAINT fk_rev_id_requerimiento
+        FOREIGN KEY (id_requerimiento)
+        REFERENCES requerimientos (id_requerimientos),
+    CONSTRAINT fk_rev_id_revisor_juego
+        FOREIGN KEY (id_revisor_juego)
+        REFERENCES revisor_juego (id_revisor_juego)
+)
+

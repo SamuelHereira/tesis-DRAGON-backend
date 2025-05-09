@@ -1,0 +1,22 @@
+CREATE TABLE revision_profesor (
+    id_revision_profesor INT NOT NULL AUTO_INCREMENT,
+    id_revision_revisor_juego INT NOT NULL,
+    id_revisor_juego INT NOT NULL,
+    aprobado INT NOT NULL,
+    retroalimentacion VARCHAR(500) NULL,
+    fecha_revision DATETIME NOT NULL,
+
+    PRIMARY KEY (id_revision_profesor),
+
+    CONSTRAINT fk_rev_prof_id_revision_revisor_juego
+        FOREIGN KEY (id_revision_revisor_juego)
+        REFERENCES revision_revisor_juego (id_revision_revisor_juego)
+        ON DELETE CASCADE,
+    
+    CONSTRAINT fk_rev_prof_id_revisor_juego
+        FOREIGN KEY (id_revisor_juego)
+        REFERENCES revisor_juego (id_revisor_juego)
+        ON DELETE CASCADE
+)
+    
+

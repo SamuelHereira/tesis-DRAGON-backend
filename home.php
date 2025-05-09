@@ -91,6 +91,18 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 $datosArray = $_reviewer->getJuegoRevisor($postBody);
                 break;
             
+            case 'postRevisarRequerimientoJuego':
+                $datosArray = $_reviewer->postRevisarRequerimientoJuego($postBody);
+                break;
+
+            case 'obtenerJuegoProfesorRevisor':
+                $datosArray = $_reviewer->getJuegoProfesorRevisor($postBody);
+                break;
+            
+            // case 'postRevisarRequerimientoJuego':
+            //     $datosArray = $_reviewer->postRevisarRequerimientoJuego($postBody);
+                // break;
+
             default:
                 $datosArray = $_respuestas->error_405();
                 break;

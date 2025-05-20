@@ -245,25 +245,27 @@ class Reviewer  extends Conexion
                                 j.fecha_finalizacion,
                                 j.id_profesor,
                                 CONCAT(u.nombres, ' ', u.apellidos) AS profesor,
-                                j.json,
-                                (
-                                    SELECT JSON_ARRAYAGG(
-                                        JSON_OBJECT(
-                                            'id_revision_revisor_juego', rrj.id_revision_revisor_juego,
-                                            'id_revisor_juego', rrj.id_revisor_juego,
-                                            'id_requerimiento', rrj.id_requerimiento,
-                                            'feedback', rrj.feedback,
-                                            'fecha_revision', rrj.fecha_revision,
-                                            'no_feedback', rrj.no_feedback
-                                        )
-                                    )
-                                    FROM revision_revisor_juego rrj
-                                    WHERE rrj.id_requerimiento IN (
-                                        SELECT r.id_requerimientos
-                                        FROM requerimientos r
-                                        WHERE JSON_CONTAINS(j.json, JSON_QUOTE(CAST(r.id_requerimientos AS CHAR)), '$[*].id_requerimientos')
-                                    )
-                                ) AS revisiones
+                                j.json
+                                -- (
+                                --     SELECT JSON_ARRAYAGG(
+                                --         JSON_OBJECT(
+                                --             'id_revision_revisor_juego', rrj.id_revision_revisor_juego,
+                                --             'id_revisor_juego', rrj.id_revisor_juego,
+                                --             'id_requerimiento', rrj.id_requerimiento,
+                                --             'titulo', rrj.titulo,
+                                --             'retroalimentacion', rrj.retroalimentacion,
+                                --             'tipo', rrj.tipo,
+                                --             'fecha_revision', rrj.fecha_revision,
+                                --             'no_feedback', rrj.no_feedback
+                                --         )
+                                --     )
+                                --     FROM revision_revisor_juego rrj
+                                --     WHERE rrj.id_requerimiento IN (
+                                --         SELECT r.id_requerimientos
+                                --         FROM requerimientos r
+                                --         WHERE JSON_CONTAINS(j.json, JSON_QUOTE(CAST(r.id_requerimientos AS CHAR)), '$[*].id_requerimientos')
+                                --     )
+                                -- ) AS revisiones
                             FROM revisor_juego rj
                             JOIN juegos j ON rj.id_juego = j.id_juego
                             JOIN usuarios u ON j.id_profesor = u.idUsuario
@@ -278,7 +280,7 @@ class Reviewer  extends Conexion
         }
     }
 
-    public function getProfesorRevisionesRequerimiento($idRevisorJuego, $idRequerimiento) {
+    public function obtenerProfesorRevisionesRequerimiento($idRevisorJuego, $idRequerimiento) {
         $query = "SELECT 
                     rrj.id_revision_revisor_juego,
                     rrj.id_revisor_juego,
@@ -286,7 +288,12 @@ class Reviewer  extends Conexion
                     rrj.titulo,
                     rrj.retroalimentacion,
                     rrj.tipo,
-                    rrj.fecha_revision
+                    rrj.fecha_revision,
+                    rrj.no_feedback,
+                    concat(u.nombres, ' ', u.apellidos) as estudiante, 
+                    -- VER SI EXISTE UNA REVISION de profesor revision_profesor por id_revision_revisor_juego
+                    (SELECT COUNT(*) FROM revision_profesor rp WHERE rp.id_revision_revisor_juego = rrj.id_revision_revisor_juego) as revision_profesor
+
                   FROM revision_revisor_juego rrj
                   JOIN revisor_juego rj ON rrj.id_revisor_juego = rj.id_revisor_juego
                   JOIN juegos j ON rj.id_juego = j.id_juego
@@ -295,6 +302,25 @@ class Reviewer  extends Conexion
 
         return parent::obtenerDatos($query);
     }
+
+        // id_revision_profesor INT NOT NULL AUTO_INCREMENT,
+        // id_revision_revisor_juego INT NOT NULL,
+        // id_revisor_juego INT NOT NULL,
+        // aprobado INT NOT NULL,
+        // retroalimentacion VARCHAR(500) NULL,
+        // fecha_revision DATETIME NOT NULL,
+    public function revisarPorProfesor($idRevisionRevisorJuego, $idRevisorJuego, $feedback) {
+
+        $aprobado = 1;
+        $fechaRevision = date('Y-m-d H:i:s');
+        $query = "INSERT INTO revision_profesor (id_revision_revisor_juego, id_revisor_juego, aprobado, retroalimentacion, fecha_revision) VALUES (?, ?, ?, ?, ?)";
+        $types = "iiiss";
+        $params = [$idRevisionRevisorJuego, $idRevisorJuego, $aprobado, $feedback, $fechaRevision];
+
+        return $this->nonQueryIdParams($query, $types, $params);
+    }
+
+
 
     public function getJuegoRevisor($json)
     {
@@ -403,5 +429,40 @@ class Reviewer  extends Conexion
         }
     }
 
+    public function getProfesorRevisionesRequerimiento($json)
+    {
+        $_respustas = new RespuestaGenerica;
+        $datos = json_decode($json, true);
+        if (!isset($datos['id_revisor_juego']) || !isset($datos['id_requerimiento'])) {
+            return $_respustas->error_400("Los campos 'id_revisor_juego' y 'id_requerimiento' son requeridos.");
+        } else {
+            $revisorJuegoId = $datos['id_revisor_juego'];
+            $requerimientoId = $datos['id_requerimiento'];
+            $revisiones = $this->obtenerProfesorRevisionesRequerimiento($revisorJuegoId, $requerimientoId);
+            if (is_array($revisiones)) {
+                $result = $_respustas->response;
+                $result["result"] = $revisiones;
+                return $result;
+            } else {
+                return $_respustas->error_200("not_game");
+            }
+        }
+    }
+
+    public function postRevisarPorProfesor($json) {
+        $_respustas = new RespuestaGenerica;
+        $datos = json_decode($json, true);
+        if (!isset($datos['id_revision_revisor_juego']) || !isset($datos['id_revisor_juego']) || !isset($datos['retroalimentacion'])) {
+            return $_respustas->error_400("Los campos 'id_revision_revisor_juego', 'id_revisor_juego', 'retroalimentacion' son requeridos.");
+        } else {
+            $idRevisionRevisorJuego = $datos['id_revision_revisor_juego'];
+            $idRevisorJuego = $datos['id_revisor_juego'];
+            $feedback = $datos['retroalimentacion'];
+
+            $result = $this->revisarPorProfesor($idRevisionRevisorJuego, $idRevisorJuego, $feedback);
+            
+            return $_respustas->response;
+        }
+    }
 
 }

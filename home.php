@@ -98,6 +98,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             case 'obtenerJuegoProfesorRevisor':
                 $datosArray = $_reviewer->getJuegoProfesorRevisor($postBody);
                 break;
+
+            case 'obtenerProfesorRevisionesRequerimiento':
+                $datosArray = $_reviewer->getProfesorRevisionesRequerimiento($postBody);
+                break;
+
+            case 'postRevisarPorProfesor':
+                $datosArray = $_reviewer->postRevisarPorProfesor($postBody);
+                break;
             
             // case 'postRevisarRequerimientoJuego':
             //     $datosArray = $_reviewer->postRevisarRequerimientoJuego($postBody);

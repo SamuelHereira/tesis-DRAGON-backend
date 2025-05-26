@@ -221,7 +221,21 @@ class Reviewer  extends Conexion
                         )
                         FROM revision_revisor_juego
                         WHERE id_revisor_juego = rj.id_revisor_juego
-                    ) AS revisiones
+                    ) AS revisiones,
+                      (SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id_revision_profesor', rp.id_revision_profesor,
+                            'id_revision_revisor_juego', rp.id_revision_revisor_juego,
+                            'id_revisor_juego', rp.id_revisor_juego,
+                            'aprobado', rp.aprobado,
+                            'retroalimentacion', rp.retroalimentacion,
+                            'fecha_revision', rp.fecha_revision
+                        )
+                        )
+                        FROM revision_profesor rp
+                        JOIN revision_revisor_juego rrj ON rp.id_revision_revisor_juego = rrj.id_revision_revisor_juego
+                        WHERE rrj.id_revisor_juego = $reviewerId
+                    ) AS revisiones_profesor
                     FROM revisor_juego rj
                     JOIN juegos j ON rj.id_juego = j.id_juego
                     JOIN usuarios u ON j.id_profesor = u.idUsuario
@@ -292,8 +306,24 @@ class Reviewer  extends Conexion
                     rrj.no_feedback,
                     concat(u.nombres, ' ', u.apellidos) as estudiante, 
                     -- VER SI EXISTE UNA REVISION de profesor revision_profesor por id_revision_revisor_juego
-                    (SELECT COUNT(*) FROM revision_profesor rp WHERE rp.id_revision_revisor_juego = rrj.id_revision_revisor_juego) as revision_profesor
+                    -- (SELECT COUNT(*) FROM revision_profesor rp WHERE rp.id_revision_revisor_juego = rrj.id_revision_revisor_juego) as revision_profesor,
+                    -- SELECCIONAR LA FECHA DE LA REVISION DEL PROFESOR
+                    -- OBTENER INFO DE LA REVISION DEL PROFESOR
+                    (SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id_revision_profesor', id_revision_profesor,
+                            'id_revision_revisor_juego', id_revision_revisor_juego,
+                            'id_revisor_juego', id_revisor_juego,
+                            'aprobado', aprobado,
+                            'retroalimentacion', retroalimentacion,
+                            'fecha_revision', fecha_revision
+                        )
+                        )
+                        FROM revision_profesor rp
+                        WHERE id_revision_revisor_juego = rrj.id_revision_revisor_juego 
+                        AND id_revisor_juego = $idRevisorJuego
 
+                    ) AS revisiones
                   FROM revision_revisor_juego rrj
                   JOIN revisor_juego rj ON rrj.id_revisor_juego = rj.id_revisor_juego
                   JOIN juegos j ON rj.id_juego = j.id_juego
@@ -309,9 +339,8 @@ class Reviewer  extends Conexion
         // aprobado INT NOT NULL,
         // retroalimentacion VARCHAR(500) NULL,
         // fecha_revision DATETIME NOT NULL,
-    public function revisarPorProfesor($idRevisionRevisorJuego, $idRevisorJuego, $feedback) {
+    public function revisarPorProfesor($idRevisionRevisorJuego, $idRevisorJuego, $aprobado, $feedback) {
 
-        $aprobado = 1;
         $fechaRevision = date('Y-m-d H:i:s');
         $query = "INSERT INTO revision_profesor (id_revision_revisor_juego, id_revisor_juego, aprobado, retroalimentacion, fecha_revision) VALUES (?, ?, ?, ?, ?)";
         $types = "iiiss";
@@ -345,7 +374,8 @@ class Reviewer  extends Conexion
                     "profesor" => $juego['profesor'],
                     "total_revision" => $juego['total_revision'],
                     "json" => json_decode($juego['json'], true)[0],
-                    "revisiones" => json_decode($revisiones, true)
+                    "revisiones" => json_decode($revisiones, true),
+                    "revisiones_profesor" => json_decode($juego['revisiones_profesor'], true) ?? []
                 );
                 return $result;
             } else {
@@ -425,7 +455,9 @@ class Reviewer  extends Conexion
             }
             
             
-            return $_respustas->response;
+            $result = $_respustas->response;
+            $result["result"] = "OK";
+            return $result;
         }
     }
 
@@ -439,6 +471,9 @@ class Reviewer  extends Conexion
             $revisorJuegoId = $datos['id_revisor_juego'];
             $requerimientoId = $datos['id_requerimiento'];
             $revisiones = $this->obtenerProfesorRevisionesRequerimiento($revisorJuegoId, $requerimientoId);
+            foreach ($revisiones as $key => $revision) {
+                $revisiones[$key]['revisiones'] = json_decode($revision['revisiones'], true) ?? [];
+            }
             if (is_array($revisiones)) {
                 $result = $_respustas->response;
                 $result["result"] = $revisiones;
@@ -452,16 +487,19 @@ class Reviewer  extends Conexion
     public function postRevisarPorProfesor($json) {
         $_respustas = new RespuestaGenerica;
         $datos = json_decode($json, true);
-        if (!isset($datos['id_revision_revisor_juego']) || !isset($datos['id_revisor_juego']) || !isset($datos['retroalimentacion'])) {
-            return $_respustas->error_400("Los campos 'id_revision_revisor_juego', 'id_revisor_juego', 'retroalimentacion' son requeridos.");
+        if (!isset($datos['id_revision_revisor_juego']) || !isset($datos['id_revisor_juego']) || !isset($datos['feedback'])) {
+            return $_respustas->error_400("Los campos 'id_revision_revisor_juego', 'id_revisor_juego', 'feedback' son requeridos.");
         } else {
             $idRevisionRevisorJuego = $datos['id_revision_revisor_juego'];
             $idRevisorJuego = $datos['id_revisor_juego'];
-            $feedback = $datos['retroalimentacion'];
+            $feedback = $datos['feedback'];
+            $aprobado = $datos['aprobado'] ?? 0;
 
-            $result = $this->revisarPorProfesor($idRevisionRevisorJuego, $idRevisorJuego, $feedback);
-            
-            return $_respustas->response;
+            $result = $this->revisarPorProfesor($idRevisionRevisorJuego, $idRevisorJuego, $aprobado, $feedback);
+
+            $result = $_respustas->response;
+            $result["result"] = "OK";
+            return $result;
         }
     }
 

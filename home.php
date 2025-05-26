@@ -115,6 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 $datosArray = $_respuestas->error_405();
                 break;
         }
+    } else {
+        $datosArray = $_respuestas->error_400();
     }
     header('Content-Type: application/json');
     if ($datosArray["code"] != "200") {

@@ -5,6 +5,17 @@ require_once 'conexion/respuestaGenerica.php';
 class Reviewer  extends Conexion
 {
 
+      private function obtenerJuego($id_juego)
+    {
+        $query = "SELECT *FROM juegos WHERE id_juego = '$id_juego'";
+        $datos = parent::obtenerDatos($query);
+        if (isset($datos[0])) {
+            return $datos[0];
+        } else {
+            return 0;
+        }
+    }
+
     public function obtainValidReviewers($gameId, $role)
     {
      
@@ -305,10 +316,12 @@ class Reviewer  extends Conexion
                     rrj.fecha_revision,
                     rrj.no_feedback,
                     concat(u.nombres, ' ', u.apellidos) as estudiante, 
-                    -- VER SI EXISTE UNA REVISION de profesor revision_profesor por id_revision_revisor_juego
-                    -- (SELECT COUNT(*) FROM revision_profesor rp WHERE rp.id_revision_revisor_juego = rrj.id_revision_revisor_juego) as revision_profesor,
-                    -- SELECCIONAR LA FECHA DE LA REVISION DEL PROFESOR
-                    -- OBTENER INFO DE LA REVISION DEL PROFESOR
+
+                    -- OBTENER INFO DE LA PREGUNTA DEL JUEGO
+                    (SELECT j.json
+                    FROM juegos j
+                    WHERE j.id_juego = (SELECT id_juego FROM revisor_juego WHERE id_revisor_juego = $idRevisorJuego)
+                    ) AS pregunta_info,
                     (SELECT JSON_ARRAYAGG(
                         JSON_OBJECT(
                             'id_revision_profesor', id_revision_profesor,
@@ -471,9 +484,36 @@ class Reviewer  extends Conexion
             $revisorJuegoId = $datos['id_revisor_juego'];
             $requerimientoId = $datos['id_requerimiento'];
             $revisiones = $this->obtenerProfesorRevisionesRequerimiento($revisorJuegoId, $requerimientoId);
-            foreach ($revisiones as $key => $revision) {
-                $revisiones[$key]['revisiones'] = json_decode($revision['revisiones'], true) ?? [];
+            foreach ($revisiones as $key => $revision)  {
+                if (isset($revision['revisiones']) && !is_null($revision['revisiones'])) {
+                    $revision['revisiones'] = json_decode($revision['revisiones'], true) ?? [];
+                    
+                } else {
+                    $revision['revisiones'] = [];
+                }
+
+                if (isset($revision['pregunta_info']) && !is_null($revision['pregunta_info'])) {
+                    $revision['pregunta_info'] = json_decode($revision['pregunta_info'], true) ?? [];
+                    // del primer elemento del json ir a requerimientos y obtener el qye tenga id = al id_requerimiento
+                    $preguntaInfo = $revision['pregunta_info'];
+                    $requerimientos = $preguntaInfo[0]['requerimientos'] ?? [];
+                    $requerimientoInfo = array_filter($requerimientos, function($req) use ($requerimientoId) {
+                        return $req['id'] == $requerimientoId;
+                    });
+                    $requerimientoInfo = array_values($requerimientoInfo);
+                    if (isset($requerimientoInfo[0])) {
+                        $revision['pregunta_info'] = $requerimientoInfo[0];
+                    } else {
+                        $revision['pregunta_info'] = [];
+                    }
+                } 
+
+                $revisiones[$key] = $revision;
             }
+
+
+
+
             if (is_array($revisiones)) {
                 $result = $_respustas->response;
                 $result["result"] = $revisiones;
@@ -502,5 +542,62 @@ class Reviewer  extends Conexion
             return $result;
         }
     }
+
+public function obtenerReporteRevisionesPorRequerimiento($id_juego) {
+    $_respustas = new RespuestaGenerica;
+
+    // 1. Obtener el JSON del juego
+    $juego = $this->obtenerJuegoRevisor($id_juego);
+    if (!$juego || empty($juego['json'])) {
+        return $_respustas->error_200("JUEGO_NO_ENCONTRADO");
+    }
+
+    $niveles = json_decode($juego['json'], true);
+    if (!is_array($niveles) || !isset($niveles[0]['requerimientos'])) {
+        return $_respustas->error_200("JSON_INVALIDO");
+    }
+
+    $reporte = [];
+
+    foreach ($niveles[0]['requerimientos'] as $req) {
+        $idReq = $req['id'];
+        $titulo = $req['requerimiento'];
+        $tipo = $req['opcionRequerimiento'];
+
+        // 2. Obtener revisiones asociadas a este id_requerimiento
+        $query = "SELECT 
+                    CONCAT(u.nombres, ' ', u.apellidos) AS revisor,
+                    rrj.feedback,
+                    rrj.no_feedback,
+                    rrj.fecha_revision
+                  FROM revision_revisor_juego rrj
+                  JOIN revisor_juego rj ON rrj.id_revisor_juego = rj.id_revisor_juego
+                  JOIN usuarios u ON rj.id_usuario = u.idUsuario
+                  WHERE rj.id_juego = $id_juego AND rrj.id_requerimiento =$idReq";
+
+        $datosRevisiones = parent::obtenerDatos($query);
+        $revisiones = [];
+        foreach ($datosRevisiones as $revision) {
+            $revisiones[] = $revision;
+        }
+        // 3. Construir el reporte
+       
+
+        // Agregar al reporte
+
+
+        $reporte[] = [
+            'id_requerimiento' => $idReq,
+            'titulo' => $titulo,
+            'tipo_requerimiento' => $tipo,
+            'revisiones' => $revisiones
+        ];
+    }
+
+    $response = $_respustas->response;
+    $response["result"] = $reporte;
+    return $response;
+}
+
 
 }

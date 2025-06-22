@@ -106,7 +106,20 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             case 'postRevisarPorProfesor':
                 $datosArray = $_reviewer->postRevisarPorProfesor($postBody);
                 break;
-            
+
+            case 'reporteRevisionesPorRequerimiento':
+                $datosArray = $_reviewer->obtenerReporteRevisionesPorRequerimiento($postBody);
+                break;
+
+            case 'reporteRevisionesPorRequerimientoYEstudiante':
+                $datosArray = $_reviewer->obtenerReporteRevisionesPorRequerimientoYEstudiante($postBody);
+                break;
+
+            case 'reporteRevisionesProfesoresPorRevision':
+                $datosArray = $_reviewer->obtenerReporteRevisionesProfesoresPorRevision($postBody);
+                break;
+
+
             // case 'postRevisarRequerimientoJuego':
             //     $datosArray = $_reviewer->postRevisarRequerimientoJuego($postBody);
                 // break;

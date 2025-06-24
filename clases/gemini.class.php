@@ -7,7 +7,7 @@ class Gemini {
     private $apiUrl;
 
     public function __construct() {
-        $this->apiKey = "AIzaSyCxfSpOr1NVRA_-WbT5n_wGbfTQim9GZVw";
+        $this->apiKey = getenv('GEMINI_API_KEY');
         $this->apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$this->apiKey}";
     }
 

@@ -1,4 +1,4 @@
-CREATE TABLE `2025_C1_Grupo3_2025`.`puntaje_juego` (
+CREATE TABLE `2025_C1_Grupo3_2025_2`.`puntaje_juego` (
   `id_puntaje_juego` INT NOT NULL AUTO_INCREMENT,
   `id_persona` INT NOT NULL,
   `id_juego` INT NOT NULL,
@@ -9,17 +9,17 @@ CREATE TABLE `2025_C1_Grupo3_2025`.`puntaje_juego` (
   INDEX `fk_id_juego_idx` (`id_juego` ASC),
   CONSTRAINT `fk_id_persona`
     FOREIGN KEY (`id_persona`)
-    REFERENCES `2025_C1_Grupo3_2025`.`usuarios` (`idUsuario`)
+    REFERENCES `2025_C1_Grupo3_2025_2`.`usuarios` (`idUsuario`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_id_juego`
     FOREIGN KEY (`id_juego`)
-    REFERENCES `2025_C1_Grupo3_2025`.`juegos` (`id_juego`)
+    REFERENCES `2025_C1_Grupo3_2025_2`.`juegos` (`id_juego`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 );
 
-ALTER TABLE `2025_C1_Grupo3_2025`.`puntaje_juego` 
+ALTER TABLE `2025_C1_Grupo3_2025_2`.`puntaje_juego` 
 ADD COLUMN `hora_inicio` VARCHAR(50) NULL AFTER `estado`,
 ADD COLUMN `hora_fin` VARCHAR(50) NULL AFTER `hora_inicio`,
 

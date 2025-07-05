@@ -21,7 +21,7 @@ class Conexion
         $this->server = "localhost";
         $this->user = "user";
         $this->password = "user";
-        $this->database = "2025_c1_grupo3_2025";
+        $this->database = "2025_C1_Grupo3_2025_2";
         $this->port = "3306";
 
         $this->conexion = new mysqli($this->server, $this->user, $this->password, $this->database, $this->port);

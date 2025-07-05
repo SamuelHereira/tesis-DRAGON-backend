@@ -2,6 +2,10 @@
 require_once 'clases/auth.class.php';
 require_once 'clases/conexion/respuestaGenerica.php';
 
+require_once 'clases/env.php'; // Asegúrate de que este archivo existe y contiene la función loadEnv
+
+loadEnv(__DIR__ . '/.env'); // Carga el archivo .env desde el directorio actual
+
 $_auth = new auth;
 $_respuestas = new RespuestaGenerica;
 

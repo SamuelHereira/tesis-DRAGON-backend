@@ -1,12 +1,12 @@
-USE `2025_C1_Grupo3_2025`;
+USE `2025_C1_Grupo3_2025_2`;
 DROP procedure IF EXISTS `LOGIN`;
 
-USE `2025_C1_Grupo3_2025`;
-DROP procedure IF EXISTS `2025_C1_Grupo3_2025`.`LOGIN`;
+USE `2025_C1_Grupo3_2025_2`;
+DROP procedure IF EXISTS `2025_C1_Grupo3_2025_2`.`LOGIN`;
 ;
 
 DELIMITER $$
-USE `2025_C1_Grupo3_2025`$$
+USE `2025_C1_Grupo3_2025_2`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `LOGIN`( IN p_usuario VARCHAR(50),
     IN p_password VARCHAR(50),
     OUT p_idUsuario INT,

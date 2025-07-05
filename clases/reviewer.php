@@ -270,27 +270,39 @@ class Reviewer  extends Conexion
                                 j.fecha_finalizacion,
                                 j.id_profesor,
                                 CONCAT(u.nombres, ' ', u.apellidos) AS profesor,
-                                j.json
-                                -- (
-                                --     SELECT JSON_ARRAYAGG(
-                                --         JSON_OBJECT(
-                                --             'id_revision_revisor_juego', rrj.id_revision_revisor_juego,
-                                --             'id_revisor_juego', rrj.id_revisor_juego,
-                                --             'id_requerimiento', rrj.id_requerimiento,
-                                --             'titulo', rrj.titulo,
-                                --             'retroalimentacion', rrj.retroalimentacion,
-                                --             'tipo', rrj.tipo,
-                                --             'fecha_revision', rrj.fecha_revision,
-                                --             'no_feedback', rrj.no_feedback
-                                --         )
-                                --     )
-                                --     FROM revision_revisor_juego rrj
-                                --     WHERE rrj.id_requerimiento IN (
-                                --         SELECT r.id_requerimientos
-                                --         FROM requerimientos r
-                                --         WHERE JSON_CONTAINS(j.json, JSON_QUOTE(CAST(r.id_requerimientos AS CHAR)), '$[*].id_requerimientos')
-                                --     )
-                                -- ) AS revisiones
+                                j.json,
+                                (SELECT 
+                                    JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'id_revision_revisor_juego', rrj2.id_revision_revisor_juego,
+                                            'id_revisor_juego', rrj2.id_revisor_juego,
+                                            'id_requerimiento', rrj2.id_requerimiento,
+                                            'titulo', rrj2.titulo,
+                                            'retroalimentacion', rrj2.retroalimentacion,
+                                            'tipo', rrj2.tipo,
+                                            'fecha_revision', rrj2.fecha_revision
+                                        )
+                                    ) 
+                                    FROM revision_revisor_juego rrj2
+                                    JOIN revisor_juego rj2 ON rrj2.id_revisor_juego = rj2.id_revisor_juego
+                                    WHERE rj2.id_juego = j.id_juego
+                                ) AS revisiones,
+                                (SELECT 
+                                    JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'id_revision_profesor', rp2.id_revision_profesor,
+                                            'id_revision_revisor_juego', rp2.id_revision_revisor_juego,
+                                            'id_revisor_juego', rp2.id_revisor_juego,
+                                            'aprobado', rp2.aprobado,
+                                            'retroalimentacion', rp2.retroalimentacion,
+                                            'fecha_revision', rp2.fecha_revision,
+                                            'id_requerimiento', rrj2.id_requerimiento
+                                        )
+                                    ) FROM revision_profesor rp2
+                                    JOIN revisor_juego rj2 ON rp2.id_revisor_juego = rj2.id_revisor_juego
+                                    JOIN revision_revisor_juego rrj2 ON rp2.id_revision_revisor_juego = rrj2.id_revision_revisor_juego
+                                    WHERE rj2.id_revisor_juego = $reviewerId
+                                ) AS revisiones_profesor
                             FROM revisor_juego rj
                             JOIN juegos j ON rj.id_juego = j.id_juego
                             JOIN usuarios u ON j.id_profesor = u.idUsuario
@@ -419,7 +431,8 @@ class Reviewer  extends Conexion
                     "id_profesor" => $juego['id_profesor'],
                     "profesor" => $juego['profesor'],
                     "json" => json_decode($juego['json'], true)[0],
-                    "revisiones" => json_decode($revisiones, true)
+                    "revisiones" => is_null($juego['revisiones']) ? [] : json_decode($revisiones, true),
+                    "revisiones_profesor" => is_null($juego['revisiones_profesor']) ? [] : json_decode($juego['revisiones_profesor'], true)
                 );
                 return $result;
             } else {
@@ -459,7 +472,7 @@ class Reviewer  extends Conexion
             $retroalimentacion = $datos['retroalimentacion'];
             $tipo = $datos['tipo'];
             $fechaRevision = date('Y-m-d H:i:s');
-            $noFeedback = isset($datos['no_feedback']) ? 1 : 0;
+            $noFeedback = isset($datos['no_feedback']) ? $datos['no_feedback'] : 0;
 
             if(isset($datos['id_revision'])) {
                 $result = $this->actualizarRevisionRequerimientoJuego($idRevisorJuego, $idRequerimiento, $titulo, $retroalimentacion, $tipo, $fechaRevision, $noFeedback);

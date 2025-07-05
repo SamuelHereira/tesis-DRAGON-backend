@@ -1,4 +1,4 @@
-CREATE TABLE `2025_C1_Grupo3_2025`.`usuarios` (
+CREATE TABLE `2025_C1_Grupo3_2025_2`.`usuarios` (
   `idUsuario` INT NOT NULL AUTO_INCREMENT,
   `usuario` VARCHAR(50) NOT NULL,
   `nombres` VARCHAR(60) NULL,
@@ -15,11 +15,11 @@ CREATE TABLE `2025_C1_Grupo3_2025`.`usuarios` (
 
 
 
-ALTER TABLE `2025_C1_Grupo3_2025`.`usuarios` 
+ALTER TABLE `2025_C1_Grupo3_2025_2`.`usuarios` 
 ADD COLUMN `rol` VARCHAR(2) NULL AFTER `alias`,
 ADD COLUMN `usuarioscol` VARCHAR(45) NULL AFTER `rol`;
-ALTER TABLE `2025_C1_Grupo3_2025`.`usuarios` 
+ALTER TABLE `2025_C1_Grupo3_2025_2`.`usuarios` 
 ADD COLUMN `passwordRecuperar` VARCHAR(45) NULL AFTER `usuarioscol`;
-ALTER TABLE `2025_C1_Grupo3_2025`.`usuarios` 
+ALTER TABLE `2025_C1_Grupo3_2025_2`.`usuarios` 
 CHANGE COLUMN `usuarioscol` `token` VARCHAR(500) NULL DEFAULT NULL ;
 

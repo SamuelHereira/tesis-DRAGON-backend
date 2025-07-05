@@ -20,7 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'generar':
                     $tema = $requestData['topic'];
                     $modoJuego = intval($requestData['gameMode']);
-                    $datosArray = $_gemini->generarRequisitos($requestData['topic'], intval($requestData['gameMode']), intval($requestData['numRequirements']));
+                    $numRequisitos = intval($requestData['numRequirements']);
+                    $ia = isset($requestData['ia']) ? $requestData['ia'] : 'gemini';
+                    $datosArray = $_gemini->generarRequisitos($tema, $modoJuego, $numRequisitos, $ia);
                     break;
             default:
                 $datosArray = $_respuestas->error_400();

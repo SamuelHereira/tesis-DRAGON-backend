@@ -3,12 +3,17 @@ require_once 'conexion/conexion.php';
 require_once 'conexion/respuestaGenerica.php';
 
 class Gemini {
-    private $apiKey;
-    private $apiUrl;
+    private $geminiApiKey;
+    private $geminiApiUrl;
+
+    private $openAiApiKey;
+    private $openAiApiUrl;
 
     public function __construct() {
-        $this->apiKey = getenv('GEMINI_API_KEY');
-        $this->apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$this->apiKey}";
+        $this->geminiApiKey = getenv('GEMINI_API_KEY');
+        $this->geminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$this->geminiApiKey}";
+        $this->openAiApiKey = getenv('OPENAI_API_KEY');
+        $this->openAiApiUrl = "https://api.openai.com/v1/chat/completions";
     }
 
     public function generatePrompt(string $topic, int $gameMode, int $numRequirements): string {
@@ -70,7 +75,7 @@ class Gemini {
             ]]
         ];
 
-        $ch = curl_init($this->apiUrl);
+        $ch = curl_init($this->geminiApiUrl);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
@@ -92,7 +97,43 @@ class Gemini {
         return $res['candidates'][0]['content']['parts'][0]['text'] ?? null;
     }
 
-    public function generarRequisitos(string $topic, int $gameMode, int $numRequirements) {
+     public function callOpenAI(string $prompt): ?string {
+        $postData = [
+            "model" => "gpt-4", // o "gpt-3.5-turbo"
+            "messages" => [
+                [ "role" => "user", "content" => $prompt ]
+            ],
+            "temperature" => 0.7
+        ];
+
+        $headers = [
+            "Authorization: Bearer {$this->openAiApiKey}",
+            "Content-Type: application/json"
+        ];
+
+        $ch = curl_init($this->openAiApiUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_POSTFIELDS => json_encode($postData)
+        ]);
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            error_log('cURL error: ' . curl_error($ch));
+            curl_close($ch);
+            return null;
+        }
+
+        curl_close($ch);
+        $res = json_decode($response, true);
+        return $res['choices'][0]['message']['content'] ?? null;
+    }
+
+
+    public function generarRequisitos(string $topic, int $gameMode, int $numRequirements, $ia = 'gemini') {
         $_respuestas = new RespuestaGenerica;
 
         if (empty($topic)) {
@@ -109,10 +150,10 @@ class Gemini {
     
 
         $prompt = $this->generatePrompt($topic, $gameMode, $numRequirements);
-        $responseText = $this->callGemini($prompt);
+        $responseText = $ia === 'gemini' ? $this->callGemini($prompt) : $this->callOpenAI($prompt);
 
         if (!$responseText) {
-            return $_respuestas->error_500("No se obtuvo respuesta de Gemini");
+            return $_respuestas->error_500("No se obtuvo respuesta de la IA");
         }
 
         // Limpiar ```json si existe
@@ -124,7 +165,7 @@ class Gemini {
         $decoded = json_decode($cleaned, true);
 
         if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
-            return $_respuestas->error_500("La respuesta de Gemini no se pudo convertir en JSON válido.");
+            return $_respuestas->error_500("La respuesta de la IA no se pudo convertir en JSON válido.");
         }
 
         $result = $_respuestas->response;

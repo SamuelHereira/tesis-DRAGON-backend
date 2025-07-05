@@ -1,11 +1,11 @@
 
-CREATE TABLE `2025_C1_Grupo3_2025`.`tipo_juegos` (
+CREATE TABLE `2025_C1_Grupo3_2025_2`.`tipo_juegos` (
   `idTipo_juegos` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(100) NULL,
   `estado` VARCHAR(45) NULL DEFAULT 'A',
   PRIMARY KEY (`idTipo_juegos`));
 
 
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_juegos` (`nombre`) VALUES ('Detectar requisitos No funcionales ambiguos y No ambiguos');
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_juegos` (`nombre`) VALUES ('Detectar requisitos funcionales de los que no son funcionales');
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_juegos` (`nombre`) VALUES ('Detectar requisitos funcionales ambiguos y no ambiguos');
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_juegos` (`nombre`) VALUES ('Detectar requisitos No funcionales ambiguos y No ambiguos');
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_juegos` (`nombre`) VALUES ('Detectar requisitos funcionales de los que no son funcionales');
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_juegos` (`nombre`) VALUES ('Detectar requisitos funcionales ambiguos y no ambiguos');

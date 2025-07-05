@@ -1,12 +1,12 @@
-USE `2025_C1_Grupo3_2025`;
+USE `2025_C1_Grupo3_2025_2`;
 DROP procedure IF EXISTS `ASIGNAR_PUNTAJE`;
 
-USE `2025_C1_Grupo3_2025`;
-DROP procedure IF EXISTS `2025_C1_Grupo3_2025`.`ASIGNAR_PUNTAJE`;
+USE `2025_C1_Grupo3_2025_2`;
+DROP procedure IF EXISTS `2025_C1_Grupo3_2025_2`.`ASIGNAR_PUNTAJE`;
 ;
 
 DELIMITER $$
-USE `2025_C1_Grupo3_2025`$$
+USE `2025_C1_Grupo3_2025_2`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `ASIGNAR_PUNTAJE`(IN p_id_persona int, 
 	IN p_id_juego int, 
     IN p_puntaje VARCHAR(500),

@@ -71,19 +71,23 @@ class auth extends Conexion
             $password = $datos['password'];
             $password = parent::encriptar($password);
             $correo = $datos['correo'];
-            if ($this->buscarUser($usuario) == 0) {
-                $datos = $this->crearCuenta($usuario, $correo, $password);
-                if ($datos) {
-                    $result = $_respustas->response;
-                    $result["result"] = array(
-                        "usuario" => $usuario
-                    );
-                    return $result;
-                } else {
-                    return $_respustas->error_200("La creación de la cuenta no fue exitosa. Por favor, inténtelo nuevamente más tarde.");
-                }
-            } else {
+            $registroFecha = date("Y-m-d H:i:s");
+            if ($this->buscarUser($usuario) == 1) {
                 return $_respustas->error_200("user_ocupado");
+            }
+            if ($this->buscarEmail($correo) == 1) {
+                return $_respustas->error_200("correo_ocupado");
+            }
+
+            $datos = $this->crearCuenta($usuario, $correo, $password, $registroFecha);
+            if ($datos) {
+                $result = $_respustas->response;
+                $result["result"] = array(
+                    "usuario" => $usuario
+                );
+                return $result;
+            } else {
+                return $_respustas->error_200("La creación de la cuenta no fue exitosa. Por favor, inténtelo nuevamente más tarde.");
             }
 
 
@@ -186,9 +190,9 @@ class auth extends Conexion
         }
     }
 
-    private function crearCuenta($usuario, $correo, $password)
+    private function crearCuenta($usuario, $correo, $password, $registroFecha)
     {
-        $query = "INSERT INTO usuarios (usuario,correo,password) VALUES ('$usuario', '$correo', '$password')";
+        $query = "INSERT INTO usuarios (usuario,correo,password,registroFecha) VALUES ('$usuario', '$correo', '$password', '$registroFecha')";
         return parent::nonQuery($query);
     }
     private function buscarUser($usuario)

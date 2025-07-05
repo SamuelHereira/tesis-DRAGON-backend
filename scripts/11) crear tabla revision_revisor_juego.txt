@@ -1,10 +1,10 @@
-CREATE TABLE revision_revisor_juego (
+CREATE TABLE `2025_C1_Grupo3_2025_2`.revision_revisor_juego (
     id_revision_revisor_juego INT NOT NULL AUTO_INCREMENT,
     id_revisor_juego INT NOT NULL,
     id_requerimiento INT NOT NULL,
-    titulo VARCHAR(45) NOT NULL,
-    retroalimentacion VARCHAR(500) NULL,
-    tipo VARCHAR(4) NOT NULL
+    titulo VARCHAR(1000) NOT NULL,
+    retroalimentacion VARCHAR(1000) NULL,
+    tipo VARCHAR(10) NOT NULL,
     fecha_revision DATETIME NOT NULL,
     no_feedback INT NOT NULL,
 
@@ -12,6 +12,6 @@ CREATE TABLE revision_revisor_juego (
 
     CONSTRAINT fk_rev_id_revisor_juego
         FOREIGN KEY (id_revisor_juego)
-        REFERENCES revisor_juego (id_revisor_juego)
+        REFERENCES `2025_C1_Grupo3_2025_2`.revisor_juego (id_revisor_juego)
         ON DELETE CASCADE
 )

@@ -1,41 +1,41 @@
-CREATE TABLE `2025_C1_Grupo3_2025`.`tipo_requerimiento` (
+CREATE TABLE `2025_C1_Grupo3_2025_2`.`tipo_requerimiento` (
   `id_tipo_requerimiento` INT NOT NULL AUTO_INCREMENT,
   `nombre_tipo` VARCHAR(45) NOT NULL,
   `codigo` VARCHAR(3) NOT NULL,
   PRIMARY KEY (`id_tipo_requerimiento`));
 
-  INSERT INTO `2025_C1_Grupo3_2025`.`tipo_requerimiento`
+  INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_requerimiento`
 (`nombre_tipo`, `codigo`)
 VALUES
 ("No Funcional Ambiguo", "NFA");
 
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_requerimiento`
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_requerimiento`
 (`nombre_tipo`, `codigo`)
 VALUES
 ("No Funcional no Ambiguo", "NFN");
 
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_requerimiento`
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_requerimiento`
 (`nombre_tipo`, `codigo`)
 VALUES
 ("Funcional Ambiguo", "FA");
 
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_requerimiento`
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_requerimiento`
 (`nombre_tipo`, `codigo`)
 VALUES
 ("Funcional no Ambiguo", "FN");
 
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_requerimiento`
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_requerimiento`
 (`nombre_tipo`, `codigo`)
 VALUES
 ("Funcional", "RF");
 
-INSERT INTO `2025_C1_Grupo3_2025`.`tipo_requerimiento`
+INSERT INTO `2025_C1_Grupo3_2025_2`.`tipo_requerimiento`
 (`nombre_tipo`, `codigo`)
 VALUES
 ("No Funcional", "RNF");
 
 
-CREATE TABLE `2025_C1_Grupo3_2025`.`requerimientos` (
+CREATE TABLE `2025_C1_Grupo3_2025_2`.`requerimientos` (
   `id_requerimientos` INT NOT NULL AUTO_INCREMENT,
   `titulo` VARCHAR(45) NOT NULL,
   `retroalimentacion` VARCHAR(500) NULL,
@@ -45,12 +45,12 @@ CREATE TABLE `2025_C1_Grupo3_2025`.`requerimientos` (
   INDEX `pk_id_requerimiento_idx` (`tipo_requerimiento` ASC),
   CONSTRAINT `fk_id_requerimiento`
     FOREIGN KEY (`tipo_requerimiento`)
-    REFERENCES `2025_C1_Grupo3_2025`.`tipo_requerimiento` (`id_tipo_requerimiento`)
+    REFERENCES `2025_C1_Grupo3_2025_2`.`tipo_requerimiento` (`id_tipo_requerimiento`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 );
 
-  INSERT INTO `2025_C1_Grupo3_2025`.`requerimientos`
+  INSERT INTO `2025_C1_Grupo3_2025_2`.`requerimientos`
 (`titulo`,
 `retroalimentacion`,
 `tipo_requerimiento`)
@@ -59,6 +59,6 @@ VALUES
 'Ejemplo Retro Alimentacion',
 1); 
 
-ALTER TABLE `2025_C1_Grupo3_2025`.`requerimientos` 
+ALTER TABLE `2025_C1_Grupo3_2025_2`.`requerimientos` 
 CHANGE COLUMN `titulo` `titulo` VARCHAR(1000) NOT NULL ,
 CHANGE COLUMN `retroalimentacion` `retroalimentacion` VARCHAR(1000) NULL DEFAULT NULL ;

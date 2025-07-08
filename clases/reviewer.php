@@ -748,7 +748,23 @@ class Reviewer  extends Conexion
                         rrj.titulo,
                         rrj.tipo,
                         rrj.no_feedback,
-                        rrj.fecha_revision
+                        rrj.fecha_revision,
+                          (SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'id_revision_profesor', rp.id_revision_profesor,
+                                'id_revision_revisor_juego', rp.id_revision_revisor_juego,
+                                'id_revisor_juego', rp.id_revisor_juego,
+                                'aprobado', rp.aprobado,
+                                'retroalimentacion', rp.retroalimentacion,
+                                'fecha_revision', rp.fecha_revision,
+                                'revisor', CONCAT(u.nombres, ' ', u.apellidos)
+                            )
+                        )
+                        FROM revision_profesor rp
+                        JOIN revisor_juego rj ON rp.id_revisor_juego = rj.id_revisor_juego
+                        JOIN usuarios u ON rj.id_usuario = u.idUsuario
+                        WHERE rp.id_revision_revisor_juego = rrj.id_revision_revisor_juego
+                        ) AS revisiones_profesores
                     FROM revision_revisor_juego rrj
                     JOIN revisor_juego rj ON rrj.id_revisor_juego = rj.id_revisor_juego
                     JOIN usuarios u ON rj.id_usuario = u.idUsuario
@@ -758,7 +774,15 @@ class Reviewer  extends Conexion
             $datosRevisiones = parent::obtenerDatos($query);
             $revisiones = [];
             foreach ($datosRevisiones as $revision) {
+                 // Decodificar revisiones_profesores si existen
+                    if (isset($revision['revisiones_profesores']) && !is_null($revision['revisiones_profesores'])) {
+                        $revision['revisiones_profesores'] = json_decode($revision['revisiones_profesores'], true) ?? [];
+                    } else {
+                        $revision['revisiones_profesores'] = [];
+                    }
+                
                 $revisiones[] = $revision;
+                
             }
             // 3. Construir el reporte
         
